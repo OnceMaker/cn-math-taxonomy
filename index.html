@@ -78,6 +78,8 @@ ul.tree li:last-child{border-bottom:0}
 .empty{color:var(--muted);text-align:center;padding:60px 20px;font-size:15px}
 .diag-cta{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;
           padding:14px;border-radius:12px;font-size:16px;font-weight:600;margin:4px 0 0;min-height:54px;line-height:1.4}
+.vboard{display:block;width:100%;border-radius:12px;background:#101613;aspect-ratio:16/9}
+.tagline{color:var(--muted);font-size:13px;margin:8px 0 0}
 /* 学习路径 stepper */
 .stats{display:flex;gap:8px;margin-bottom:10px}
 .stat{flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
@@ -267,6 +269,14 @@ function showDetail(id, fromRoute) {
 const link = id => el("span", {class:"node", onclick:() => openTopic(id, true), text:byId.get(id).name});
 const badge = s => el("span", {class:"badge " + s, text: s === "hard" ? "硬先修" : "软先修"});
 
+// 讲解视频映射：id → 相对视频路径；没有视频的知识点不显示播放器
+const VIDEOS = { "cnm_219": "videos/cnm_219.mp4" };
+function videoCard(t) {
+  const v = el("video", {class:"vboard", controls:"", preload:"none", playsinline:"", src:VIDEOS[t.id]});
+  return el("div", {class:"card"}, el("h2", {text:"讲解视频"}), v,
+    el("p", {class:"tagline", text:"板书讲解 · 约 2 分半"}));
+}
+
 function renderDetail(t) {
   const d = $("#detail");
   const head = el("div", {class:"card"},
@@ -281,6 +291,7 @@ function renderDetail(t) {
     el("p", {text:t.description}),
     el("a", {class:"diag-cta", href:"diagnose/?target=" + t.id, text:"去诊断「" + t.name + "」→"}));
   const parts = [head];
+  if (VIDEOS[t.id]) parts.push(videoCard(t));
   if (!t.external) {
     parts.push(el("div", {class:"card"}, el("h2", {text:"掌握标准"}),
       el("ul", {class:"plain"}, t.mastery_criteria.map(c => el("li", {text:c})))));
