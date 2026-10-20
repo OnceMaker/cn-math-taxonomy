@@ -365,7 +365,7 @@ function pathCard(t) {
     el("div", {class:"stat"}, el("b", {text:String(d.total)}), el("span", {text:"全部前置"})),
     el("div", {class:"stat"}, el("b", {text:String(d.maxRel)}), el("span", {text:"最长链（步）"})));
   card.append(stats);
-  if (span) card.append(el("div", {class:"small muted", text:"跨越 " + span + "，建议按序号顺序学习。"}));
+  if (span) card.append(el("div", {class:"small muted", text:"跨越 " + span + "。路径自上而下由近及远，学习顺序看序号：从小到大（自下而上）。"}));
   const bar = el("div", {class:"seg"},
     el("button", {class:pathMode === "all" ? "on" : "", text:"完整路径（" + all.total + "）",
       onclick:() => { pathMode = "all"; renderDetail(t); }}),
@@ -378,13 +378,12 @@ function pathCard(t) {
   }
   if (pathMode === "hard") card.append(el("div", {class:"small muted", text:"只走硬先修边：最少必备知识，软先修为建议补充。"}));
   const ol = el("ol", {class:"steps"});
-  let lastRel = null, seg = 0, stepNo = 0;
+  // 段号与序号先按学习顺序算（第 1 段＝最基础，语义不变），再整组倒序显示：离目标最近的一段在最上
+  const groups = [];
+  let cur = null, stepNo = 0;
   for (const id of d.order) {
     const r = d.relOf(id);
-    if (r !== lastRel) {
-      lastRel = r; seg++;
-      ol.append(el("li", {class:"stepgrp", text:"第 " + seg + " 段 · 距目标 " + r + " 步"}));
-    }
+    if (!cur || cur.r !== r) { cur = { r: r, seg: groups.length + 1, items: [] }; groups.push(cur); }
     stepNo++;
     const n = byId.get(id);
     const why = d.whyOf(id);
@@ -392,10 +391,15 @@ function pathCard(t) {
       el("span", {text:n.name}),
       el("span", {class:"meta", text: n.external ? "小学先修（外部）" : GRADE_ZH[n.grade] + n.semester + " · " + n.domain}),
       why ? el("span", {class:"why", text:"— " + why}) : null);
-    ol.append(el("li", {class:"step", onclick:() => openTopic(id, true)},
+    cur.items.push(el("li", {class:"step", onclick:() => openTopic(id, true)},
       el("span", {class:"sno", text:String(stepNo)}),
       nm,
       el("span", {class:"sright"}, badge(d.critOf(id)), el("span", {class:"chev", text:"›"}))));
+  }
+  for (let gi = groups.length - 1; gi >= 0; gi--) {
+    const g = groups[gi];
+    ol.append(el("li", {class:"stepgrp", text:"第 " + g.seg + " 段 · 距目标 " + g.r + " 步"}));
+    for (let ii = g.items.length - 1; ii >= 0; ii--) ol.append(g.items[ii]);
   }
   card.append(ol);
   return card;
