@@ -158,6 +158,7 @@ const el = (tag, attrs, ...kids) => {
 
 let topics = [], deps = [], aliases = {}, byId = new Map(), pre = new Map(), post = new Map();
 let selected = null, listScroll = 0, pathMode = "all";
+let inAppDepth = 0; // 站内点开详情的层数：深链直达时为 0，返回按钮据此决定 history.back() 还是直接回列表
 const pathCache = new Map();
 
 function gradeKey(t) { return t.external ? "小学" : GRADE_ZH[t.grade] + t.semester; }
@@ -190,7 +191,7 @@ async function load() {
   for (const [k, v] of Object.entries(TYPE_ZH)) $("#fType").append(el("option", {value:k, text:v}));
   for (const id of ["q", "fGrade", "fDomain", "fType"]) $("#" + id).addEventListener("input", renderList);
   $("#backBtn").addEventListener("click", () => {
-    if (history.length > 1) history.back(); else showList();
+    if (inAppDepth > 0) { inAppDepth--; history.back(); } else showList();
   });
   window.addEventListener("hashchange", route);
   renderList();
@@ -238,11 +239,11 @@ function resolveAlias(id) {
 function route() {
   const id = resolveAlias(decodeURIComponent(location.hash.slice(1)));
   if (id) showDetail(id, false);
-  else showList();
+  else { inAppDepth = 0; showList(); }
 }
 
 function openTopic(id, push) {
-  if (push) location.hash = "#" + id;
+  if (push) { inAppDepth++; location.hash = "#" + id; }
   else showDetail(id, false);
 }
 
