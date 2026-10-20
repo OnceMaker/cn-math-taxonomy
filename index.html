@@ -2,82 +2,407 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>中小学数学知识图谱</title>
-<meta name="description" content="沿先修关系自适应出题，从选中的知识点往回找到薄弱根因，并给出从低年级排起的学习路径。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ccircle cx='9' cy='21' r='2.5' fill='white'/%3E%3Ccircle cx='17' cy='11' r='2.5' fill='white'/%3E%3Ccircle cx='24' cy='20' r='2.5' fill='white'/%3E%3C/svg%3E">
-<script>
-(function () {
-  var id = location.hash.replace(/^#/, '');
-  try { id = decodeURIComponent(id); } catch (e) { return; }
-  if (/^cnm_[A-Za-z0-9]+$/.test(id)) {
-    document.documentElement.style.visibility = 'hidden';
-    location.replace('explore/#' + encodeURIComponent(id));
-  }
-})();
-</script>
-<link rel="stylesheet" href="assets/site.css">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="中小学数学知识图谱（一至九年级）：531 个知识点、909 条先修关系，手机版浏览。">
+<title>中小学数学知识图谱 · 手机版</title>
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#f6f7f9;--panel:#fff;--line:#e1e4e8;--text:#1f2933;--muted:#6b7785;--accent:#2563eb;
+      --hard:#c2410c;--soft:#64748b;--ext:#7c3aed;--navy:#1e293b}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font:17px/1.65 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+     color:var(--text);background:var(--bg);-webkit-tap-highlight-color:transparent}
+button,input,select{touch-action:manipulation;font:inherit}
+/* 顶部栏（粘性） */
+.top{position:sticky;top:0;z-index:30}
+.appbar{background:var(--navy);color:#fff;display:flex;align-items:center;gap:10px;
+        padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top))}
+.appbar-title{font-size:18px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}
+.back-btn{background:none;border:0;color:#fff;font-size:17px;padding:8px 14px 8px 0;white-space:nowrap;cursor:pointer}
+.tool-link{color:#fff;background:var(--accent);padding:9px 16px;border-radius:999px;text-decoration:none;font-size:15px;white-space:nowrap}
+/* 筛选区 */
+.filters{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 14px 6px}
+#q{width:100%;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#f8fafc;margin:0 0 10px}
+#q:focus{outline:2px solid var(--accent);outline-offset:-1px;background:#fff}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px}
+.grid3 select{font-size:16px;padding:11px 4px 11px 8px;border:1px solid var(--line);border-radius:12px;background:#fff;width:100%;min-height:50px}
+#count{font-size:13px;color:var(--muted);padding:4px 2px 10px}
+/* 列表 */
+#list{margin:0;padding:0;list-style:none;background:var(--panel)}
+#list .grp{background:#eef2f7;padding:8px 16px;font-size:13px;font-weight:700;color:#475569}
+#list .item{display:flex;align-items:center;gap:10px;min-height:62px;padding:12px 16px;border-bottom:1px solid #f0f2f4;cursor:pointer}
+#list .item:active{background:#f1f5f9}
+#list .nm{font-size:17px;flex:1;line-height:1.4}
+#list .meta{font-size:13px;color:var(--muted);display:block;margin-top:2px}
+#list .chev{color:#c3c9d4;font-size:22px;flex:none}
+.disclaimer{font-size:12px;color:#9aa5b3;padding:14px 16px 20px}
+/* 详情 */
+.card{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:18px 16px;margin:14px 0}
+.card h2{font-size:17px;margin:0 0 12px}
+.title{font-size:23px;line-height:1.35;margin:0 0 10px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag{font-size:13px;background:#f1f5f9;color:#475569;padding:5px 12px;border-radius:999px}
+.tag.ext{background:#f5f3ff;color:var(--ext)}
+.plain{margin:0;padding-left:22px}
+.plain li{margin-bottom:8px}
+.q{font-size:17px;overflow-wrap:anywhere}
+details.ans summary{padding:12px 0;font-size:16px;color:var(--accent);cursor:pointer;list-style:none}
+details.ans summary::-webkit-details-marker{display:none}
+details.ans summary:before{content:"▸ ";font-size:14px}
+details.ans[open] summary:before{content:"▾ "}
+.seg{display:flex;background:#eef1f5;border-radius:12px;padding:4px;gap:4px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;padding:11px 0;border-radius:9px;font-size:15px;color:var(--muted);min-height:48px}
+.seg button.on{background:#fff;color:var(--text);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.badge{font-size:12px;padding:3px 10px;border-radius:999px;margin-right:6px;white-space:nowrap}
+.badge.hard{background:#ffedd5;color:var(--hard)}
+.badge.soft{background:#f1f5f9;color:var(--soft)}
+ul.tree{list-style:none;margin:0;padding:0}
+ul.tree ul{margin:6px 0 0;padding-left:16px;border-left:2px solid #e8edf3;list-style:none}
+ul.tree li{padding:10px 0;border-bottom:1px solid #f4f6f8;font-size:16px}
+ul.tree li:last-child{border-bottom:0}
+.node{color:var(--accent);font-weight:600;cursor:pointer}
+.node:active{opacity:.6}
+.seen{font-size:13px;color:var(--muted)}
+.why{font-size:14px;color:var(--muted);display:block;margin-top:2px}
+.chip{display:inline-flex;align-items:center;min-height:44px;margin:0 8px 8px 0;padding:8px 14px;border:1px solid var(--line);
+      border-radius:999px;background:#fff;font-size:15px;cursor:pointer}
+.chip:active{background:#eef2ff}
+.chip.ext{border-color:#c4b5fd}
+.layer{margin-bottom:14px}
+.layer h3{font-size:15px;margin:0 0 8px;color:#475569}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-radius:12px;padding:16px;margin:16px}
+.err code{background:#fee2e2;padding:1px 6px;border-radius:4px;font-size:14px}
+.empty{color:var(--muted);text-align:center;padding:60px 20px;font-size:15px}
+.diag-cta{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;
+          padding:14px;border-radius:12px;font-size:16px;font-weight:600;margin:4px 0 0;min-height:54px;line-height:1.4}
+/* 学习路径 stepper */
+.stats{display:flex;gap:8px;margin-bottom:10px}
+.stat{flex:1;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
+.stat b{display:block;font-size:22px;color:var(--accent);line-height:1.2}
+.stat span{font-size:12px;color:var(--muted)}
+ol.steps{list-style:none;margin:10px 0 0;padding:0 0 0 4px;position:relative}
+ol.steps:before{content:"";position:absolute;left:20px;top:10px;bottom:10px;width:2px;background:#e2e8f0}
+li.stepgrp{font-size:13px;font-weight:700;color:#475569;background:#eef2f7;border-radius:8px;padding:7px 12px;margin:12px 0 4px;position:relative;z-index:1}
+li.step{display:flex;align-items:center;gap:10px;border:1px solid #eef1f5;border-radius:12px;padding:12px;margin:6px 0;cursor:pointer;position:relative;z-index:1;background:#fff}
+li.step:active{background:#f1f5f9}
+li.step .nm{flex:1;min-width:0}
+li.step .meta{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+li.step .why{display:block;font-size:14px;color:var(--muted);margin-top:3px}
+.sno{flex:none;width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.sright{display:flex;align-items:center;gap:2px;flex:none}
+/* 页脚 */
+.zz-legal{text-align:center;font-size:13px;color:#8a94a6;padding:20px 8px 12px}
+.zz-legal a{color:inherit;text-decoration:none;padding:6px 4px}
+.zz-src{text-align:center;font-size:12px;color:#aab2c0;padding:0 16px calc(20px + env(safe-area-inset-bottom))}
+.zz-src a{color:inherit}
+/* 桌面：居中窄列 */
+@media (min-width:900px){
+  #screen-list,#screen-detail,.top .appbar-inner{max-width:760px;margin:0 auto}
+  .top{border-bottom:1px solid var(--line)}
+}
+</style>
 </head>
-<body class="page-home">
-<header class="site-header">
-  <a class="brand" href="./">
-    <svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><circle cx="9" cy="21" r="2.5" fill="#fff"/><circle cx="17" cy="11" r="2.5" fill="#fff"/><circle cx="24" cy="20" r="2.5" fill="#fff"/><path d="M11.2 19.2 15.2 12.8M18.6 12.6 22.2 18.2" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
-    <span class="brand-name">中小学数学知识图谱</span>
-  </a>
-  <nav class="site-nav" aria-label="主导航">
-    <a class="nav-link active" href="./" aria-current="page">首页</a>
-    <a class="nav-link" href="explore/">知识图谱</a>
-    <a class="nav-link" href="diagnose/">诊断</a>
-    <a class="nav-link" href="https://github.com/xiaoyang111222/cn-math-taxonomy" target="_blank" rel="noopener noreferrer">关于</a>
-  </nav>
-</header>
-<main class="home">
-  <section class="hero">
-    <p class="eyebrow">一至九年级 · 人教版数学</p>
-    <h1>先找到真正没学会的那一步</h1>
-    <p class="lede">沿着先修关系自适应出题，从你选的知识点往回追，定位薄弱根因，并给出一条从低年级排起的学习路径。</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary btn-lg" href="diagnose/">开始诊断</a>
-      <a class="btn btn-lg" href="explore/">浏览知识图谱</a>
+<body>
+<section id="screen-list">
+  <div class="top">
+    <div class="appbar">
+      <h1 class="appbar-title">中小学数学知识图谱</h1>
+      <a class="tool-link" href="diagnose/">诊断小工具 →</a>
     </div>
-    <p class="quiet-link"><a href="diagnose/?target=cnm_221&amp;demo=1">先看一遍演示：配方法</a></p>
-  </section>
-
-  <h2 class="section-title">三步</h2>
-  <ol class="steps">
-    <li>
-      <span class="step-no">1</span>
-      <h3>选知识点</h3>
-      <p>从一年级到九年级，搜索或按册、章找到想检查的内容。</p>
-    </li>
-    <li>
-      <span class="step-no">2</span>
-      <h3>自适应答题</h3>
-      <p>先问目标本身。答错再出一道同级或更容易的题，仍然错才沿着先修往回追。</p>
-    </li>
-    <li>
-      <span class="step-no">3</span>
-      <h3>找到根因和学习路径</h3>
-      <p>标出薄弱根因和不稳的点，并按年级从低到高排出建议补学的顺序。</p>
-    </li>
-  </ol>
-
-  <h2 class="section-title">图谱里有什么</h2>
-  <div class="stat-grid" id="stats">
-    <div class="stat-card"><div class="stat-num" id="n-topics">…</div><div class="stat-label">知识点</div></div>
-    <div class="stat-card"><div class="stat-num" id="n-edges">…</div><div class="stat-label">先修边</div></div>
-    <div class="stat-card"><div class="stat-num" id="n-questions">…</div><div class="stat-label">题目</div></div>
-    <div class="stat-card"><div class="stat-num" id="n-standards">…</div><div class="stat-label">课标条目</div></div>
+    <div class="filters">
+      <input id="q" type="search" placeholder="搜索知识点名称、描述、章节…" autocomplete="off" enterkeyhint="search">
+      <div class="grid3">
+        <select id="fGrade" aria-label="年级"><option value="">全部年级</option><option value="1上">一年级上</option><option value="1下">一年级下</option><option value="2上">二年级上</option><option value="2下">二年级下</option><option value="3上">三年级上</option><option value="3下">三年级下</option><option value="4上">四年级上</option><option value="4下">四年级下</option><option value="5上">五年级上</option><option value="5下">五年级下</option><option value="6上">六年级上</option><option value="6下">六年级下</option><option value="7上">七年级上</option><option value="7下">七年级下</option><option value="8上">八年级上</option><option value="8下">八年级下</option><option value="9上">九年级上</option><option value="9下">九年级下</option></select>
+        <select id="fDomain" aria-label="领域"><option value="">全部领域</option></select>
+        <select id="fType" aria-label="类型"><option value="">全部类型</option></select>
+      </div>
+      <div id="count"></div>
+    </div>
   </div>
-  <p class="stat-note">以上数字在打开页面时从知识点、先修、题库和课标文件统计。</p>
-  <div id="load-error" class="load-error" hidden></div>
+  <ul id="list"></ul>
+  <div class="disclaimer">AI 生成的初稿，未经教师审核；先修关系尤其需要一线教师审核。数据：人教版一—九年级。</div>
+</section>
 
-  <h2 class="section-title">按年级进入</h2>
-  <div class="grade-grid" id="grades" aria-busy="true"></div>
-</main>
-<footer class="site-footer">
-  <p>AI 生成初稿，未经教师审核。<a href="https://github.com/xiaoyang111222/cn-math-taxonomy/issues/new/choose">提交 Issue</a></p>
-</footer>
-<script src="assets/home.js"></script>
+<section id="screen-detail" hidden>
+  <div class="top">
+    <div class="appbar">
+      <button class="back-btn" id="backBtn">‹ 返回</button>
+      <h1 class="appbar-title" id="dTitle"></h1>
+    </div>
+  </div>
+  <div id="detail"></div>
+</section>
+
+<footer class="zz-legal"><a href="https://www.zhuziyu.net/privacy.html">隐私政策</a> · <a href="https://www.zhuziyu.net/terms.html">服务条款</a> · <a href="https://www.zhuziyu.net/contact.html">联系我们</a></footer>
+<div class="zz-src">数据与题库来源：<a href="https://github.com/xiaoyang111222/cn-math-taxonomy">cn-math-taxonomy</a>（CC BY-NC 4.0）· 内容为 AI 生成草稿，未经教师审核</div>
+
+<script>
+"use strict";
+const TYPE_ZH = {conceptual:"概念理解", procedural:"程序性技能", reasoning:"推理证明", application:"应用", modeling:"建模"};
+const GRADE_ZH = {1:"一", 2:"二", 3:"三", 4:"四", 5:"五", 6:"六", 7:"七", 8:"八", 9:"九"};
+const $ = s => document.querySelector(s);
+const el = (tag, attrs, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null) e.append(c.nodeType ? c : document.createTextNode(c));
+  return e;
+};
+
+let topics = [], deps = [], aliases = {}, byId = new Map(), pre = new Map(), post = new Map();
+let selected = null, listScroll = 0, pathMode = "all";
+const pathCache = new Map();
+
+function gradeKey(t) { return t.external ? "小学" : GRADE_ZH[t.grade] + t.semester; }
+function gradeLabel(t) { return t.external ? "小学先修（外部节点）" : GRADE_ZH[t.grade] + "年级" + t.semester + "册"; }
+
+async function load() {
+  try {
+    const [a, b, c] = await Promise.all([fetch("data/topics.json"), fetch("data/dependencies.json"), fetch("data/id-aliases.json")]);
+    if (!a.ok || !b.ok || !c.ok) throw new Error("HTTP " + a.status + "/" + b.status + "/" + c.status);
+    topics = await a.json(); deps = await b.json(); aliases = (await c.json()).aliases || {};
+  } catch (e) {
+    $("#screen-list").innerHTML = "";
+    document.body.insertBefore(el("div", {class:"err"},
+      el("b", {text:"无法加载数据文件。"}), el("br"),
+      "浏览器出于安全限制不允许用 ", el("code", {text:"file://"}), " 直接读取本地 JSON。请在本目录运行：", el("br"),
+      el("code", {text:"python3 -m http.server 8000"}), " 然后访问 ", el("code", {text:"http://localhost:8000/"}),
+      el("br"), el("span", {class:"muted", text:"（" + e.message + "）"})), $("#screen-detail"));
+    return;
+  }
+  for (const t of topics) { byId.set(t.id, t); pre.set(t.id, []); post.set(t.id, []); }
+  for (const d of deps) {
+    pre.get(d.topicId).push({id:d.prerequisiteId, strength:d.strength, reason:d.reason});
+    post.get(d.prerequisiteId).push({id:d.topicId, strength:d.strength, reason:d.reason});
+  }
+  for (const m of [pre, post]) for (const arr of m.values())
+    arr.sort((x, y) => (x.strength === y.strength ? 0 : x.strength === "hard" ? -1 : 1) || x.id.localeCompare(y.id));
+
+  const doms = [...new Set(topics.map(t => t.domain))];
+  for (const d of doms) $("#fDomain").append(el("option", {value:d, text:d}));
+  for (const [k, v] of Object.entries(TYPE_ZH)) $("#fType").append(el("option", {value:k, text:v}));
+  for (const id of ["q", "fGrade", "fDomain", "fType"]) $("#" + id).addEventListener("input", renderList);
+  $("#backBtn").addEventListener("click", () => {
+    if (history.length > 1) history.back(); else showList();
+  });
+  window.addEventListener("hashchange", route);
+  renderList();
+  route();
+}
+
+function filtered() {
+  const q = $("#q").value.trim().toLowerCase(), d = $("#fDomain").value,
+        g = $("#fGrade").value, ty = $("#fType").value;
+  return topics.filter(t => {
+    if (d && t.domain !== d) return false;
+    if (ty && t.type !== ty) return false;
+    if (g && (t.grade + t.semester) !== g) return false;
+    if (q && !((t.name + t.description + (t.chapter || "") + t.id).toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+function renderList() {
+  const items = filtered(), ul = $("#list");
+  ul.replaceChildren();
+  let last = null;
+  for (const t of items) {
+    const key = gradeKey(t);
+    if (key !== last) {
+      last = key;
+      ul.append(el("li", {class:"grp", text:gradeLabel(t)}));
+    }
+    const meta = el("span", {class:"meta", text: t.external ? t.domain : t.domain + " · " + (t.chapter || "").replace(/^.. /, "")});
+    const li = el("li", {class:"item", onclick:() => openTopic(t.id, true)},
+      el("span", {class:"nm"}, el("span", {text:t.name}), meta),
+      el("span", {class:"chev", text:"›"}));
+    ul.append(li);
+  }
+  $("#count").textContent = "共 " + topics.length + " 个知识点 · 显示 " + items.length;
+}
+
+function resolveAlias(id) {
+  if (!byId.has(id) && aliases[id] && aliases[id].targets && aliases[id].targets.length) {
+    const first = aliases[id].targets[0];
+    if (byId.has(first)) return first;
+  }
+  return byId.has(id) ? id : null;
+}
+
+function route() {
+  const id = resolveAlias(decodeURIComponent(location.hash.slice(1)));
+  if (id) showDetail(id, false);
+  else showList();
+}
+
+function openTopic(id, push) {
+  if (push) location.hash = "#" + id;
+  else showDetail(id, false);
+}
+
+function showList(restore) {
+  $("#screen-detail").hidden = true;
+  $("#screen-list").hidden = false;
+  document.title = "中小学数学知识图谱 · 手机版";
+  if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+  window.scrollTo(0, restore ? listScroll : 0);
+}
+
+function showDetail(id, fromRoute) {
+  const t = byId.get(id);
+  selected = id;
+  listScroll = window.scrollY;
+  $("#screen-list").hidden = true;
+  $("#screen-detail").hidden = false;
+  $("#dTitle").textContent = t.name;
+  document.title = t.name + " · 数学知识图谱";
+  renderDetail(t);
+  if (!fromRoute) window.scrollTo(0, 0);
+}
+
+const link = id => el("span", {class:"node", onclick:() => openTopic(id, true), text:byId.get(id).name});
+const badge = s => el("span", {class:"badge " + s, text: s === "hard" ? "硬先修" : "软先修"});
+
+function renderDetail(t) {
+  const d = $("#detail");
+  const head = el("div", {class:"card"},
+    el("h1", {class:"title", text:t.name}),
+    el("div", {class:"tags"},
+      el("span", {class:"tag" + (t.external ? " ext" : ""), text:t.id}),
+      el("span", {class:"tag", text:t.domain}),
+      t.external ? el("span", {class:"tag ext", text:"小学先修（外部节点）"})
+                 : [el("span", {class:"tag", text:GRADE_ZH[t.grade] + "年级" + t.semester}),
+                    el("span", {class:"tag", text:TYPE_ZH[t.type] || t.type}),
+                    el("span", {class:"tag", text:t.chapter})]),
+    el("p", {text:t.description}),
+    el("a", {class:"diag-cta", href:"diagnose/?target=" + t.id, text:"去诊断「" + t.name + "」→"}));
+  const parts = [head];
+  if (!t.external) {
+    parts.push(el("div", {class:"card"}, el("h2", {text:"掌握标准"}),
+      el("ul", {class:"plain"}, t.mastery_criteria.map(c => el("li", {text:c})))));
+    parts.push(el("div", {class:"card"}, el("h2", {text:"诊断题"}),
+      el("div", {class:"q"}, el("div", {text:t.diagnostic_question.question}),
+        el("details", {class:"ans"}, el("summary", {text:"查看答案"}), el("div", {text:t.diagnostic_question.answer})))));
+  }
+  parts.push(pathCard(t), postCard(t));
+  d.replaceChildren(...parts);
+}
+
+function pathData(tid, hardOnly) {
+  // 预计算派生结构：祖先集合、拓扑序（最基础在前）、到目标的最长距离 rel、关键边强度
+  const key = tid + (hardOnly ? "|h" : "");
+  if (pathCache.has(key)) return pathCache.get(key);
+  const edgeOK = p => !hardOnly || p.strength === "hard";
+  const seen = new Set(), st = [tid];
+  while (st.length) for (const p of pre.get(st.pop()))
+    if (edgeOK(p) && !seen.has(p.id)) { seen.add(p.id); st.push(p.id); }
+  const rel = new Map(), visiting = new Set();
+  rel.set(tid, 0);
+  const depth = v => {
+    if (rel.has(v)) return rel.get(v);
+    if (visiting.has(v)) return 0;
+    visiting.add(v);
+    let m = -1;
+    for (const p of post.get(v))
+      if (edgeOK(p) && (p.id === tid || seen.has(p.id))) m = Math.max(m, depth(p.id));
+    visiting.delete(v);
+    rel.set(v, m + 1);
+    return m + 1;
+  };
+  let maxRel = 0;
+  for (const v of seen) maxRel = Math.max(maxRel, depth(v));
+  // 拓扑序：rel 大在前（先修必定更早），同层按年级/ID 稳定排序
+  const order = [...seen].sort((a, b) =>
+    rel.get(b) - rel.get(a) ||
+    (byId.get(a).grade || 0) - (byId.get(b).grade || 0) ||
+    a.localeCompare(b));
+  // 关键边：沿最长链向上的一条硬/软边（决定"为什么需要它"和徽章）
+  const pick = v => {
+    let best = null;
+    for (const p of post.get(v))
+      if (edgeOK(p) && (p.id === tid || seen.has(p.id)) && rel.get(p.id) === rel.get(v) - 1)
+        if (!best || p.strength === "hard") best = p;
+    return best;
+  };
+  const crit = new Map(), why = new Map();
+  for (const v of seen) { const e = pick(v); crit.set(v, e && e.strength === "hard" ? "hard" : "soft"); why.set(v, e ? e.reason : ""); }
+  const grades = [...seen].map(i => byId.get(i).grade || 0).filter(g => g > 0);
+  const d = {
+    order, maxRel,
+    direct: pre.get(tid).filter(edgeOK).length,
+    total: seen.size,
+    gradeSpan: grades.length ? [Math.min(...grades), Math.max(...grades)] : null,
+    relOf: v => rel.get(v), critOf: v => crit.get(v), whyOf: v => why.get(v)
+  };
+  pathCache.set(key, d);
+  return d;
+}
+
+function pathCard(t) {
+  const card = el("div", {class:"card"});
+  card.append(el("h2", {text:"学习路径"}));
+  const all = pathData(t.id, false), fast = pathData(t.id, true);
+  const d = pathMode === "hard" ? fast : all;
+  const gzh = g => GRADE_ZH[g] || g;
+  const span = d.gradeSpan ? gzh(d.gradeSpan[0]) + "～" + gzh(d.gradeSpan[1]) + "年级" : "";
+  const stats = el("div", {class:"stats"},
+    el("div", {class:"stat"}, el("b", {text:String(d.direct)}), el("span", {text:"直接先修"})),
+    el("div", {class:"stat"}, el("b", {text:String(d.total)}), el("span", {text:"全部前置"})),
+    el("div", {class:"stat"}, el("b", {text:String(d.maxRel)}), el("span", {text:"最长链（步）"})));
+  card.append(stats);
+  if (span) card.append(el("div", {class:"small muted", text:"跨越 " + span + "，建议按序号顺序学习。"}));
+  const bar = el("div", {class:"seg"},
+    el("button", {class:pathMode === "all" ? "on" : "", text:"完整路径（" + all.total + "）",
+      onclick:() => { pathMode = "all"; renderDetail(t); }}),
+    el("button", {class:pathMode === "hard" ? "on" : "", text:"最速通道（" + fast.total + "）",
+      onclick:() => { pathMode = "hard"; renderDetail(t); }}));
+  card.append(bar);
+  if (!d.total) {
+    card.append(el("div", {class:"muted", text: t.external ? "外部节点，没有进一步先修。" : "没有先修（根节点）。"}));
+    return card;
+  }
+  if (pathMode === "hard") card.append(el("div", {class:"small muted", text:"只走硬先修边：最少必备知识，软先修为建议补充。"}));
+  const ol = el("ol", {class:"steps"});
+  let lastRel = null, seg = 0, stepNo = 0;
+  for (const id of d.order) {
+    const r = d.relOf(id);
+    if (r !== lastRel) {
+      lastRel = r; seg++;
+      ol.append(el("li", {class:"stepgrp", text:"第 " + seg + " 段 · 距目标 " + r + " 步"}));
+    }
+    stepNo++;
+    const n = byId.get(id);
+    const why = d.whyOf(id);
+    const nm = el("span", {class:"nm"},
+      el("span", {text:n.name}),
+      el("span", {class:"meta", text: n.external ? "小学先修（外部）" : GRADE_ZH[n.grade] + n.semester + " · " + n.domain}),
+      why ? el("span", {class:"why", text:"— " + why}) : null);
+    ol.append(el("li", {class:"step", onclick:() => openTopic(id, true)},
+      el("span", {class:"sno", text:String(stepNo)}),
+      nm,
+      el("span", {class:"sright"}, badge(d.critOf(id)), el("span", {class:"chev", text:"›"}))));
+  }
+  card.append(ol);
+  return card;
+}
+
+function postCard(t) {
+  const card = el("div", {class:"card"}), list = post.get(t.id);
+  const down = new Set(), st = [t.id];
+  while (st.length) for (const p of post.get(st.pop())) if (!down.has(p.id)) { down.add(p.id); st.push(p.id); }
+  card.append(el("h2", {text:"后续知识点（直接 " + list.length + " 个，累计下游 " + down.size + " 个）"}));
+  if (!list.length) { card.append(el("div", {class:"muted", text:"没有后续知识点依赖它（末端节点）。"})); return card; }
+  card.append(el("ul", {class:"plain"}, list.map(p => el("li", {},
+    badge(p.strength), link(p.id), el("span", {class:"seen", text:" " + gradeKey(byId.get(p.id))}),
+    el("span", {class:"why muted", text:" — " + p.reason})))));
+  return card;
+}
+
+load();
+</script>
 </body>
 </html>
