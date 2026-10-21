@@ -473,6 +473,8 @@
     if (pm) return { volume: pm[1] + pm[2], chapterNo: pm[3], chapterName: pm[4], section: '' };
     const pi = /^([一二三四五六])年级([上下])册 (综合与实践) (.+)$/.exec(s);
     if (pi) return { volume: pi[1] + pi[2], chapterNo: pi[3], chapterName: pi[4], section: '' };
+    const pa = /^(\S+) (数学建模|数学探究) (.+)$/.exec(s);
+    if (pa) return { volume: pa[1], chapterNo: pa[2], chapterName: pa[3], section: '' };
     const m = /^(\S+) (第\S+章) (\S+?)(?: (\S+))?$/.exec(s);
     if (!m) return { volume: '', chapterNo: '', chapterName: s, section: '' };
     return { volume: m[1], chapterNo: m[2], chapterName: m[3], section: m[4] || '' };
