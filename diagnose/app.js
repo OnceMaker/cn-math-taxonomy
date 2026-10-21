@@ -11,7 +11,8 @@
     ['三上', '三年级上册'], ['三下', '三年级下册'], ['四上', '四年级上册'], ['四下', '四年级下册'],
     ['五上', '五年级上册'], ['五下', '五年级下册'], ['六上', '六年级上册'], ['六下', '六年级下册'],
     ['七上', '七年级上册'], ['七下', '七年级下册'], ['八上', '八年级上册'], ['八下', '八年级下册'],
-    ['九上', '九年级上册'], ['九下', '九年级下册']
+    ['九上', '九年级上册'], ['九下', '九年级下册'],
+    ['高一', '高一'], ['高二', '高二'], ['选必一', '选择性必修一'], ['选必二', '选择性必修二'], ['选必三', '选择性必修三']
   ];
   const RESULT_LABEL = { correct: '对', wrong: '错', skip: '不会' };
   const STATUS_LABEL = { mastered: '已掌握', shaky: '不稳', weak: '薄弱', unknown: '未测' };
@@ -84,6 +85,8 @@
     const rs = await Promise.all(urls.map(function (u) { return fetch(u); }));
     rs.forEach(function (r, i) { if (!r.ok) throw new Error(urls[i] + ' → HTTP ' + r.status); });
     const js = await Promise.all(rs.map(function (r) { return r.json(); }));
+    // 与浏览页一致：稳定排序到正确册次（上游有二轮追加块），册内保持原序
+    js[0].sort(function (x, y) { return (x.grade - y.grade) || (x.semester === y.semester ? 0 : x.semester === '上' ? -1 : 1); });
     // 题库可选：缺失（404）或损坏时回退到 topics.json 的 diagnostic_question
     let questions = null;
     try {
