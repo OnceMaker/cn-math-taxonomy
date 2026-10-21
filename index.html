@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="中小学数学知识图谱（一至九年级）：531 个知识点、909 条先修关系，手机版浏览。">
+<meta name="description" content="中小学数学知识图谱（一至九年级＋高中）：802 个知识点、1299 条先修关系，手机版浏览。">
 <title>中小学数学知识图谱 · 手机版</title>
 <link rel="icon" href="data:,">
 <style>
@@ -117,7 +117,7 @@ li.step .why{display:block;font-size:14px;color:var(--muted);margin-top:3px}
     <div class="filters">
       <input id="q" type="search" placeholder="搜索知识点名称、描述、章节…" autocomplete="off" enterkeyhint="search">
       <div class="grid3">
-        <select id="fGrade" aria-label="年级"><option value="">全部年级</option><option value="1上">一年级上</option><option value="1下">一年级下</option><option value="2上">二年级上</option><option value="2下">二年级下</option><option value="3上">三年级上</option><option value="3下">三年级下</option><option value="4上">四年级上</option><option value="4下">四年级下</option><option value="5上">五年级上</option><option value="5下">五年级下</option><option value="6上">六年级上</option><option value="6下">六年级下</option><option value="7上">七年级上</option><option value="7下">七年级下</option><option value="8上">八年级上</option><option value="8下">八年级下</option><option value="9上">九年级上</option><option value="9下">九年级下</option></select>
+        <select id="fGrade" aria-label="年级"><option value="">全部年级</option><option value="1上">一年级上</option><option value="1下">一年级下</option><option value="2上">二年级上</option><option value="2下">二年级下</option><option value="3上">三年级上</option><option value="3下">三年级下</option><option value="4上">四年级上</option><option value="4下">四年级下</option><option value="5上">五年级上</option><option value="5下">五年级下</option><option value="6上">六年级上</option><option value="6下">六年级下</option><option value="7上">七年级上</option><option value="7下">七年级下</option><option value="8上">八年级上</option><option value="8下">八年级下</option><option value="9上">九年级上</option><option value="9下">九年级下</option><option value="10上">高一</option><option value="11上">高二</option><option value="12上">选择性必修一</option><option value="13上">选择性必修二</option><option value="14上">选择性必修三</option></select>
         <select id="fDomain" aria-label="领域"><option value="">全部领域</option></select>
         <select id="fType" aria-label="类型"><option value="">全部类型</option></select>
       </div>
@@ -161,14 +161,20 @@ let selected = null, listScroll = 0, pathMode = "all";
 let inAppDepth = 0; // 站内点开详情的层数：深链直达时为 0，返回按钮据此决定 history.back() 还是直接回列表
 const pathCache = new Map();
 
-function gradeKey(t) { return t.external ? "小学" : GRADE_ZH[t.grade] + t.semester; }
-function gradeLabel(t) { return t.external ? "小学先修（外部节点）" : GRADE_ZH[t.grade] + "年级" + t.semester + "册"; }
+const HS_VOL = {10:"高一", 11:"高二", 12:"选必一", 13:"选必二", 14:"选必三"};
+const HS_VOL_FULL = {10:"高一", 11:"高二", 12:"选择性必修一", 13:"选择性必修二", 14:"选择性必修三"};
+function gradeSemLabel(t) { return t.grade >= 10 ? HS_VOL[t.grade] : GRADE_ZH[t.grade] + t.semester; }
+function gradeTagLabel(t) { return t.grade >= 10 ? HS_VOL_FULL[t.grade] : GRADE_ZH[t.grade] + "年级" + t.semester; }
+function gradeKey(t) { return t.external ? "小学" : gradeSemLabel(t); }
+function gradeLabel(t) { return t.external ? "小学先修（外部节点）" : (t.grade >= 10 ? HS_VOL_FULL[t.grade] : GRADE_ZH[t.grade] + "年级" + t.semester + "册"); }
 
 async function load() {
   try {
     const [a, b, c] = await Promise.all([fetch("data/topics.json"), fetch("data/dependencies.json"), fetch("data/id-aliases.json")]);
     if (!a.ok || !b.ok || !c.ok) throw new Error("HTTP " + a.status + "/" + b.status + "/" + c.status);
     topics = await a.json(); deps = await b.json(); aliases = (await c.json()).aliases || {};
+    // 上游数据有二轮追加块（七下/八下/九下在文件尾部重现）：稳定排序到正确册次，册内保持原序
+    topics.sort((x, y) => (x.grade - y.grade) || (x.semester === y.semester ? 0 : x.semester === "上" ? -1 : 1));
   } catch (e) {
     $("#screen-list").innerHTML = "";
     document.body.insertBefore(el("div", {class:"err"},
@@ -286,7 +292,7 @@ function renderDetail(t) {
       el("span", {class:"tag" + (t.external ? " ext" : ""), text:t.id}),
       el("span", {class:"tag", text:t.domain}),
       t.external ? el("span", {class:"tag ext", text:"小学先修（外部节点）"})
-                 : [el("span", {class:"tag", text:GRADE_ZH[t.grade] + "年级" + t.semester}),
+                 : [el("span", {class:"tag", text:gradeTagLabel(t)}),
                     el("span", {class:"tag", text:TYPE_ZH[t.type] || t.type}),
                     el("span", {class:"tag", text:t.chapter})]),
     el("p", {text:t.description}),
@@ -359,7 +365,7 @@ function pathCard(t) {
   card.append(el("h2", {text:"学习路径"}));
   const all = pathData(t.id, false), fast = pathData(t.id, true);
   const d = pathMode === "hard" ? fast : all;
-  const gzh = g => GRADE_ZH[g] || g;
+  const gzh = g => g >= 10 ? HS_VOL[g] : (GRADE_ZH[g] || g);
   const span = d.gradeSpan ? gzh(d.gradeSpan[0]) + "～" + gzh(d.gradeSpan[1]) + "年级" : "";
   const stats = el("div", {class:"stats"},
     el("div", {class:"stat"}, el("b", {text:String(d.direct)}), el("span", {text:"直接先修"})),
@@ -390,7 +396,7 @@ function pathCard(t) {
     const why = d.whyOf(id);
     const nm = el("span", {class:"nm"},
       el("span", {text:n.name}),
-      el("span", {class:"meta", text: n.external ? "小学先修（外部）" : GRADE_ZH[n.grade] + n.semester + " · " + n.domain}),
+      el("span", {class:"meta", text: n.external ? "小学先修（外部）" : gradeSemLabel(n) + " · " + n.domain}),
       why ? el("span", {class:"why", text:"— " + why}) : null);
     cur.items.push(el("li", {class:"step", onclick:() => openTopic(id, true)},
       el("span", {class:"sno", text:String(stepNo)}),
